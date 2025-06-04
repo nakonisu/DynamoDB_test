@@ -512,4 +512,4 @@ def play_sound(sound_id):
         return jsonify({"error": f"音声ファイルの取得に失敗しました: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8081)
+    app.run(debug=True, port=8082)
