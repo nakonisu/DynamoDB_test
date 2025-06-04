@@ -88,7 +88,11 @@
                                 </td>
                                 <td>{{ device.created_at|timestamp_to_datetime }}</td>
                                 <td>
-                                    <form method="POST" action="{{ url_for('delete_device', device_id=device.device_id) }}" 
+                                    <button class="btn btn-outline-primary btn-sm btn-action" 
+                                            onclick="editDevice('{{ device.device_id }}', {{ device|tojson }})">
+                                        <i class="fas fa-edit"></i> 編集
+                                    </button>
+                                    <form method="POST" action="/devices/{{ device.device_id }}/delete" 
                                           style="display: inline;" onsubmit="return confirm('このデバイスを削除しますか？')">
                                         <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
                                             <i class="fas fa-trash"></i> 削除
@@ -154,6 +158,94 @@
         </div>
     </div>
 
+    <!-- デバイス編集モーダル -->
+    <div class="modal fade" id="editDeviceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">デバイス編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="" id="editDeviceForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editDeviceId" name="device_id">
+                        <div class="mb-3">
+                            <label class="form-label">検知状態</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="detection_status" id="editDetectionStatus">
+                                <label class="form-check-label">検知を有効にする</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">警報音設定</label>
+                            <div id="editDeviceConfigs">
+                                <!-- 動的に生成される -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-success">更新</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // デバイス編集フォーム表示
+        function editDevice(deviceId, deviceData) {
+            document.getElementById('editDeviceId').value = deviceId;
+            document.getElementById('editDetectionStatus').checked = deviceData.detection_status;
+            
+            // フォームのaction URLを動的に設定
+            const form = document.getElementById('editDeviceForm');
+            form.action = `/devices/${deviceId}`;
+            
+            // 警報音設定を動的に生成
+            const configsContainer = document.getElementById('editDeviceConfigs');
+            configsContainer.innerHTML = '';
+            
+            // 利用可能な警報音のオプションを作成
+            const alarmSounds = [
+                {% for sound in alarm_sounds %}
+                { id: '{{ sound.sound_id }}', name: '{{ sound.sound_name }}' },
+                {% endfor %}
+            ];
+            
+            deviceData.device_configs.forEach((config, index) => {
+                const configDiv = document.createElement('div');
+                configDiv.className = 'device-config mb-3';
+                
+                let soundOptions = '<option value="">選択してください</option>';
+                alarmSounds.forEach(sound => {
+                    const selected = config.sound_id === sound.id ? 'selected' : '';
+                    soundOptions += `<option value="${sound.id}" ${selected}>${sound.name} (ID: ${sound.id})</option>`;
+                });
+                
+                configDiv.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label class="form-label">警報音</label>
+                            <select class="form-select" name="sound_id[]" required>
+                                ${soundOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">手動閾値（任意）</label>
+                            <input type="number" step="0.1" class="form-control" name="threshold_manual[]" 
+                                   value="${config.threshold.manual || ''}" placeholder="25.0">
+                            <div class="form-text">自動閾値はシステムが生成します</div>
+                        </div>
+                    </div>
+                `;
+                configsContainer.appendChild(configDiv);
+            });
+            
+            const modal = new bootstrap.Modal(document.getElementById('editDeviceModal'));
+            modal.show();
+        }
+    </script>
 </body>
 </html>

@@ -75,7 +75,7 @@
                                             onclick="editSound('{{ sound.sound_id }}', '{{ sound.sound_name }}', '{{ sound.s3_key }}')">
                                         <i class="fas fa-edit"></i> 編集
                                     </button>
-                                    <form method="POST" action="{{ url_for('delete_alarm_sound', sound_id=sound.sound_id) }}" 
+                                    <form method="POST" action="/alarm-sounds/{{ sound.sound_id }}/delete" 
                                           style="display: inline;" onsubmit="return confirm('この警報音を削除しますか？')">
                                         <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
                                             <i class="fas fa-trash"></i> 削除

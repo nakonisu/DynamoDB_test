@@ -262,7 +262,7 @@ def update_alarm_sound_form(sound_id):
     
     return redirect(url_for('alarm_sounds_page'))
 
-@app.route("/alarm-sounds/<sound_id>", methods=["DELETE"])
+@app.route("/alarm-sounds/<sound_id>/delete", methods=["POST"])
 def delete_alarm_sound(sound_id):
     """警報音削除"""
     try:
@@ -294,7 +294,7 @@ def delete_alarm_sound(sound_id):
     
     return redirect(url_for('alarm_sounds_page'))
 
-@app.route("/devices/<device_id>", methods=["DELETE"])  
+@app.route("/devices/<device_id>/delete", methods=["POST"])  
 def delete_device(device_id):
     """デバイス削除"""
     try:
@@ -512,4 +512,4 @@ def play_sound(sound_id):
         return jsonify({"error": f"音声ファイルの取得に失敗しました: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8081)
