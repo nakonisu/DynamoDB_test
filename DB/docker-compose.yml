@@ -1,0 +1,11 @@
+# docker-compose.yml
+version: "3.8"
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodb"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/dynamodb:/home/dynamodb
