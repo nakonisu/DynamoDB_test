@@ -91,10 +91,9 @@
                                     </td>
                                     <td>{{ device.created_at|timestamp_to_datetime }}</td>
                                     <td>
-                                        <button class="btn btn-outline-primary btn-sm btn-action"
-                                            onclick="editDevice('{{ device.device_id }}', JSON.parse('{{ device|tojson|safe }}'))">
+                                        <a href="/devices/{{ device.device_id }}/edit" class="btn btn-outline-primary btn-sm btn-action">
                                             <i class="fas fa-edit"></i> 編集
-                                        </button>
+                                        </a>
                                         <form method="POST" action="/devices/{{ device.device_id }}/delete"
                                             style="display: inline;" onsubmit="return confirm('このデバイスを削除しますか？')">
                                             <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
@@ -139,7 +138,8 @@
                                                     <option value="">選択してください</option>
                                                     {% for sound in alarm_sounds %}
                                                     <option value="{{ sound.sound_id }}">{{ sound.sound_name }} (ID:
-                                                        {{ sound.sound_id }})</option>
+                                                        {{ sound.sound_id }})
+                                                    </option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
@@ -171,109 +171,17 @@
                         <h5 class="modal-title">デバイス編集</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <form method="POST" action="" id="editDeviceForm">
-                        <div class="modal-body">
-                            <input type="hidden" id="editDeviceId" name="device_id">
-                            <div class="mb-3">
-                                <label class="form-label">検知状態</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="detection_status"
-                                        id="editDetectionStatus">
-                                    <label class="form-check-label">検知を有効にする</label>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">警報音設定</label>
-                                <div id="editDeviceConfigs">
-                                    <!-- 動的に生成される -->
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                            <button type="submit" class="btn btn-success">更新</button>
-                        </div>
-                    </form>
+                    <div class="modal-body">
+                        <p class="text-muted">編集機能は別ページで提供されます。編集ボタンをクリックしてください。</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
-        <!-- 警報音データを JavaScriptで利用可能にする -->
-        <script>
-            window.alarmSoundsData = [
-                {% for sound in alarm_sounds %}
-            { id: '{{ sound.sound_id }}', name: '{{ sound.sound_name }}' } {% if not loop.last %}, {% endif %}
-            {% endfor %}
-        ];
-        </script>
-
-        <script>
-            // デバイス編集フォーム表示
-            function editDevice(deviceId, deviceData) {
-                console.log('editDevice called:', deviceId, deviceData);
-
-                try {
-                    document.getElementById('editDeviceId').value = deviceId;
-                    document.getElementById('editDetectionStatus').checked = deviceData.detection_status || false;
-
-                    // フォームのaction URLを動的に設定
-                    const form = document.getElementById('editDeviceForm');
-                    form.action = `/devices/${deviceId}`;
-
-                    // 警報音設定を動的に生成
-                    const configsContainer = document.getElementById('editDeviceConfigs');
-                    configsContainer.innerHTML = '';
-
-                    if (deviceData.device_configs && Array.isArray(deviceData.device_configs)) {
-                        deviceData.device_configs.forEach((config, index) => {
-                            const configDiv = document.createElement('div');
-                            configDiv.className = 'device-config mb-3';
-
-                            let soundOptions = '<option value="">選択してください</option>';
-                            window.alarmSoundsData.forEach(sound => {
-                                const selected = config.sound_id === sound.id ? 'selected' : '';
-                                soundOptions += `<option value="${sound.id}" ${selected}>${sound.name} (ID: ${sound.id})</option>`;
-                            });
-
-                            // 安全にthresholdの値を取得
-                            let manualThreshold = '';
-                            if (config.threshold && typeof config.threshold === 'object' && config.threshold.manual !== undefined && config.threshold.manual !== null) {
-                                manualThreshold = config.threshold.manual;
-                            }
-
-                            configDiv.innerHTML = `
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <label class="form-label">警報音</label>
-                                    <select class="form-select" name="sound_id[]" required>
-                                        ${soundOptions}
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">手動閾値（任意）</label>
-                                    <input type="number" step="0.1" class="form-control" name="threshold_manual[]" 
-                                           value="${manualThreshold}" placeholder="25.0">
-                                    <div class="form-text">自動閾値はシステムが生成します</div>
-                                </div>
-                            </div>
-                        `;
-                            configsContainer.appendChild(configDiv);
-                        });
-                    } else {
-                        console.warn('device_configs is not available or not an array');
-                    }
-
-                    const modal = new bootstrap.Modal(document.getElementById('editDeviceModal'));
-                    modal.show();
-
-                } catch (error) {
-                    console.error('editDevice error:', error);
-                    alert('編集画面の表示でエラーが発生しました: ' + error.message);
-                }
-            }
-        </script>
     </body>
 
 </html>

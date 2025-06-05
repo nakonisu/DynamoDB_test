@@ -12,6 +12,7 @@ dynamodb = boto3.resource(
     aws_secret_access_key="dummy",
 )
 
+
 def create_alarm_sounds_table():
     """警報音管理テーブルを作成"""
     try:
@@ -27,7 +28,7 @@ def create_alarm_sounds_table():
         )
         table.wait_until_exists()
         print("AlarmSounds テーブルが作成されました")
-        
+
         # サンプルデータを挿入
         sample_sounds = [
             {
@@ -38,7 +39,7 @@ def create_alarm_sounds_table():
                 "updated_at": int(time.time()),
             },
             {
-                "sound_id": "evacuation_alarm_001", 
+                "sound_id": "evacuation_alarm_001",
                 "sound_name": "避難警報音",
                 "s3_key": "ref/evacuation_alarm_001.wav",
                 "created_at": int(time.time()),
@@ -47,19 +48,20 @@ def create_alarm_sounds_table():
             {
                 "sound_id": "emergency_siren_001",
                 "sound_name": "緊急サイレン",
-                "s3_key": "ref/emergency_siren_001.wav", 
+                "s3_key": "ref/emergency_siren_001.wav",
                 "created_at": int(time.time()),
                 "updated_at": int(time.time()),
-            }
+            },
         ]
-        
+
         for sound in sample_sounds:
             table.put_item(Item=sound)
-        
+
         print("サンプル警報音データを挿入しました")
-        
+
     except Exception as e:
         print(f"AlarmSounds テーブル作成エラー: {e}")
+
 
 def create_devices_table():
     """デバイステーブルを作成"""
@@ -76,7 +78,7 @@ def create_devices_table():
         )
         table.wait_until_exists()
         print("Devices テーブルが作成されました")
-        
+
         # サンプルデータを挿入
         sample_devices = [
             {
@@ -86,15 +88,13 @@ def create_devices_table():
                         "sound_id": "fire_alarm_001",
                         "threshold": {
                             "auto": Decimal("21.5"),
-                            "manual": Decimal("25.0")
-                        }
+                            "manual": Decimal("25.0"),
+                        },
                     },
                     {
-                        "sound_id": "evacuation_alarm_001", 
-                        "threshold": {
-                            "auto": Decimal("18.0")
-                        }
-                    }
+                        "sound_id": "evacuation_alarm_001",
+                        "threshold": {"auto": Decimal("18.0")},
+                    },
                 ],
                 "detection_status": True,
                 "created_at": int(time.time()),
@@ -107,23 +107,24 @@ def create_devices_table():
                         "sound_id": "emergency_siren_001",
                         "threshold": {
                             "auto": Decimal("20.0"),
-                            "manual": Decimal("22.5")
-                        }
+                            "manual": Decimal("22.5"),
+                        },
                     }
                 ],
                 "detection_status": False,
                 "created_at": int(time.time()),
                 "updated_at": int(time.time()),
-            }
+            },
         ]
-        
+
         for device in sample_devices:
             table.put_item(Item=device)
-            
+
         print("サンプルデバイスデータを挿入しました")
-        
+
     except Exception as e:
         print(f"Devices テーブル作成エラー: {e}")
+
 
 def delete_old_movies_table():
     """古いMoviesテーブルを削除"""
@@ -134,14 +135,15 @@ def delete_old_movies_table():
     except Exception as e:
         print(f"Moviesテーブル削除エラー（存在しない可能性があります）: {e}")
 
+
 if __name__ == "__main__":
     print("=== 警報音管理システム マイグレーション開始 ===")
-    
+
     # 古いテーブルを削除
     delete_old_movies_table()
-    
+
     # 新しいテーブルを作成
     create_alarm_sounds_table()
     create_devices_table()
-    
+
     print("=== マイグレーション完了 ===")

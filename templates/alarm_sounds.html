@@ -1,172 +1,178 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>警報音管理 - 警報音管理システム</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-bell"></i> 警報音管理システム
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link active" href="{{ url_for('alarm_sounds_page') }}">
-                    <i class="fas fa-volume-up"></i> 警報音管理
-                </a>
-                <a class="nav-link" href="{{ url_for('devices_page') }}">
-                    <i class="fas fa-microchip"></i> デバイス管理
-                </a>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container mt-4">
-        <!-- Flashメッセージ表示 -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>警報音管理 - 警報音管理システム</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-bell"></i> 警報音管理システム
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link active" href="{{ url_for('alarm_sounds_page') }}">
+                        <i class="fas fa-volume-up"></i> 警報音管理
+                    </a>
+                    <a class="nav-link" href="{{ url_for('devices_page') }}">
+                        <i class="fas fa-microchip"></i> デバイス管理
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-4">
+            <!-- Flashメッセージ表示 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
             {% endif %}
-        {% endwith %}
+            {% endwith %}
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-volume-up"></i> 警報音管理
-                </h5>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSoundModal">
-                    <i class="fas fa-plus"></i> 新規登録
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>音源ID</th>
-                                <th>名前</th>
-                                <th>ファイルパス</th>
-                                <th>作成日時</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sound in alarm_sounds %}
-                            <tr>
-                                <td><code>{{ sound.sound_id }}</code></td>
-                                <td>{{ sound.sound_name }}</td>
-                                <td><code>{{ sound.s3_key }}</code></td>
-                                <td>{{ sound.created_at|timestamp_to_datetime }}</td>
-                                <td>
-                                    <a href="{{ url_for('play_sound', sound_id=sound.sound_id) }}" 
-                                       target="_blank" class="btn btn-outline-success btn-sm btn-action">
-                                        <i class="fas fa-play"></i> 再生
-                                    </a>
-                                    <button class="btn btn-outline-primary btn-sm btn-action" 
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-volume-up"></i> 警報音管理
+                    </h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSoundModal">
+                        <i class="fas fa-plus"></i> 新規登録
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>音源ID</th>
+                                    <th>名前</th>
+                                    <th>ファイルパス</th>
+                                    <th>作成日時</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sound in alarm_sounds %}
+                                <tr>
+                                    <td><code>{{ sound.sound_id }}</code></td>
+                                    <td>{{ sound.sound_name }}</td>
+                                    <td><code>{{ sound.s3_key }}</code></td>
+                                    <td>{{ sound.created_at|timestamp_to_datetime }}</td>
+                                    <td>
+                                        <a href="{{ url_for('play_sound', sound_id=sound.sound_id) }}" target="_blank"
+                                            class="btn btn-outline-success btn-sm btn-action">
+                                            <i class="fas fa-play"></i> 再生
+                                        </a>
+                                        <button class="btn btn-outline-primary btn-sm btn-action"
                                             onclick="editSound('{{ sound.sound_id }}', '{{ sound.sound_name }}', '{{ sound.s3_key }}')">
-                                        <i class="fas fa-edit"></i> 編集
-                                    </button>
-                                    <form method="POST" action="/alarm-sounds/{{ sound.sound_id }}/delete" 
-                                          style="display: inline;" onsubmit="return confirm('この警報音を削除しますか？')">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
-                                            <i class="fas fa-trash"></i> 削除
+                                            <i class="fas fa-edit"></i> 編集
                                         </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                        <form method="POST" action="/alarm-sounds/{{ sound.sound_id }}/delete"
+                                            style="display: inline;" onsubmit="return confirm('この警報音を削除しますか？')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
+                                                <i class="fas fa-trash"></i> 削除
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 警報音追加モーダル -->
-    <div class="modal fade" id="addSoundModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">警報音登録</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- 警報音追加モーダル -->
+        <div class="modal fade" id="addSoundModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">警報音登録</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('add_alarm_sound') }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="soundName" class="form-label">音源名 *</label>
+                                <input type="text" class="form-control" id="soundName" name="sound_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="soundFile" class="form-label">音源ファイル *</label>
+                                <input type="file" class="form-control" id="soundFile" name="sound_file"
+                                    accept=".wav,.mp3,.ogg,.m4a" required>
+                                <div class="form-text">対応形式: WAV, MP3, OGG, M4A（最大16MB）</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">登録</button>
+                        </div>
+                    </form>
                 </div>
-                <form method="POST" enctype="multipart/form-data" action="{{ url_for('add_alarm_sound') }}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="soundName" class="form-label">音源名 *</label>
-                            <input type="text" class="form-control" id="soundName" name="sound_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="soundFile" class="form-label">音源ファイル *</label>
-                            <input type="file" class="form-control" id="soundFile" name="sound_file" 
-                                   accept=".wav,.mp3,.ogg,.m4a" required>
-                            <div class="form-text">対応形式: WAV, MP3, OGG, M4A（最大16MB）</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                        <button type="submit" class="btn btn-primary">登録</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
-    <!-- 警報音編集モーダル -->
-    <div class="modal fade" id="editSoundModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">警報音編集</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- 警報音編集モーダル -->
+        <div class="modal fade" id="editSoundModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">警報音編集</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST"
+                        action="{{ url_for('update_alarm_sound_form', sound_id='SOUND_ID_PLACEHOLDER') }}"
+                        id="editSoundForm">
+                        <div class="modal-body">
+                            <input type="hidden" id="editSoundId" name="sound_id">
+                            <div class="mb-3">
+                                <label for="editSoundName" class="form-label">音源名 *</label>
+                                <input type="text" class="form-control" id="editSoundName" name="sound_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editS3Key" class="form-label">ファイルパス</label>
+                                <input type="text" class="form-control" id="editS3Key" name="s3_key" readonly>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">更新</button>
+                        </div>
+                    </form>
                 </div>
-                <form method="POST" action="{{ url_for('update_alarm_sound_form', sound_id='SOUND_ID_PLACEHOLDER') }}" id="editSoundForm">
-                    <div class="modal-body">
-                        <input type="hidden" id="editSoundId" name="sound_id">
-                        <div class="mb-3">
-                            <label for="editSoundName" class="form-label">音源名 *</label>
-                            <input type="text" class="form-control" id="editSoundName" name="sound_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editS3Key" class="form-label">ファイルパス</label>
-                            <input type="text" class="form-control" id="editS3Key" name="s3_key" readonly>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                        <button type="submit" class="btn btn-primary">更新</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // 編集フォーム表示
-        function editSound(soundId, soundName, s3Key) {
-            document.getElementById('editSoundId').value = soundId;
-            document.getElementById('editSoundName').value = soundName;
-            document.getElementById('editS3Key').value = s3Key;
-            
-            // フォームのaction URLを動的に設定
-            const form = document.getElementById('editSoundForm');
-            form.action = `/alarm-sounds/${soundId}`;
-            
-            const modal = new bootstrap.Modal(document.getElementById('editSoundModal'));
-            modal.show();
-        }
-    </script>
-</body>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // 編集フォーム表示
+            function editSound(soundId, soundName, s3Key) {
+                document.getElementById('editSoundId').value = soundId;
+                document.getElementById('editSoundName').value = soundName;
+                document.getElementById('editS3Key').value = s3Key;
+
+                // フォームのaction URLを動的に設定
+                const form = document.getElementById('editSoundForm');
+                form.action = `/alarm-sounds/${soundId}`;
+
+                const modal = new bootstrap.Modal(document.getElementById('editSoundModal'));
+                modal.show();
+            }
+        </script>
+    </body>
+
 </html>

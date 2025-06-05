@@ -16,58 +16,54 @@
 
 ```
 DynamoDB_test/
-├── app/
-│   ├── app.py                    # メインアプリケーション
-│   ├── config/                   # 設定ファイル
-│   │   ├── __init__.py
-│   │   ├── app_config.py         # アプリケーション設定
-│   │   └── database.py           # DynamoDB接続設定
-│   ├── models/                   # データモデル（今後の拡張用）
-│   │   └── __init__.py
-│   ├── routes/                   # ルート定義
-│   │   ├── __init__.py
-│   │   ├── main_routes.py        # メインページルート
-│   │   ├── alarm_sound_routes.py # 警報音管理ルート
-│   │   └── device_routes.py      # デバイス管理ルート
-│   ├── services/                 # ビジネスロジック
-│   │   ├── __init__.py
-│   │   ├── id_service.py         # ID生成サービス
-│   │   ├── alarm_sound_service.py # 警報音管理サービス
-│   │   └── device_service.py     # デバイス管理サービス
-│   ├── utils/                    # ユーティリティ関数
-│   │   ├── __init__.py
-│   │   └── helpers.py            # ヘルパー関数
-│   ├── static/                   # 静的ファイル
-│   │   └── css/
-│   │       └── style.css
-│   ├── templates/                # HTMLテンプレート
-│   │   ├── alarm_sounds.html
-│   │   └── devices.html
-│   └── uploads/                  # アップロードファイル
-├── venv/                         # 仮想環境
+├── app.py                        # メインアプリケーション
+├── app/                          # アプリケーション（現在未使用）
+│   └── app.py
+├── static/                       # 静的ファイル
+│   └── css/
+│       └── style.css
+├── templates/                    # HTMLテンプレート
+│   ├── alarm_sounds.html
+│   └── devices.html
+├── uploads/                      # アップロードファイル
+│   ├── 4.wav
+│   ├── 5.wav
+│   └── test_alarm.wav
 ├── data/                         # DynamoDBデータ
+│   └── dynamodb/
+│       └── shared-local-instance.db
 ├── DB/                           # データベース関連
+│   ├── docker-compose.yml        # DynamoDB Local設定
+│   ├── migrate.py                # テーブル作成・マイグレーション
+│   ├── test.py                   # テスト用スクリプト
+│   └── data/
+│       └── dynamodb/
+│           └── shared-local-instance.db
+├── venv/                         # 仮想環境
 ├── requirements.txt              # Python依存関係
-└── README.md                     # このファイル
+├── .env                          # 環境変数設定
+├── .gitignore                    # Git除外設定
+└── readme.md                     # このファイル
 ```
 
 ### アーキテクチャの特徴
 
-1. **レイヤード アーキテクチャ**
+1. **シンプルな構造**
 
-   - Routes: HTTP リクエストの処理
-   - Services: ビジネスロジック
-   - Utils: 共通ユーティリティ
+   - 単一ファイル構成（app.py）でプロトタイプ開発
+   - 必要最小限の機能に集約
+   - DynamoDB Local を使用したローカル開発環境
 
 2. **責任分離**
 
-   - 各機能ごとにサービスクラスを分離
-   - データベース接続設定の分離
-   - 設定値の外部化
+   - ルーティング、ビジネスロジック、データアクセスを同一ファイル内で分離
+   - テンプレートとスタイルの分離
+   - 設定値の明示的定義
 
-3. **Flask Blueprint**
-   - 機能ごとにルートを分割
-   - 保守性とスケーラビリティの向上
+3. **Flask の基本機能活用**
+   - シンプルなルーティング
+   - テンプレートエンジン（Jinja2）
+   - ファイルアップロード機能
 
 ## セットアップ
 
@@ -102,11 +98,11 @@ python migrate.py
 ### 5. アプリケーション起動
 
 ```bash
-cd app
+# プロジェクトルートディレクトリで実行
 python app.py
 ```
 
-アプリケーションは http://localhost:8080 で起動します。
+アプリケーションは http://localhost:5000 で起動します。
 
 ## 主要機能
 
@@ -190,40 +186,56 @@ python app.py
 
 ## 設定ファイル
 
-### config/app_config.py
+### app.py 内の設定
 
 ```python
-UPLOAD_FOLDER = 'app/uploads'           # ファイルアップロード先
-ALLOWED_EXTENSIONS = {'wav', 'mp3', 'ogg', 'm4a'}  # 許可拡張子
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024   # 最大ファイルサイズ（16MB）
-SECRET_KEY = 'your-secret-key-here'     # Flask秘密キー
-DEBUG = True                            # デバッグモード
-PORT = 8080                             # ポート番号
+# ファイルアップロード設定
+UPLOAD_FOLDER = 'uploads'                        # ファイルアップロード先
+ALLOWED_EXTENSIONS = {'wav', 'mp3', 'ogg', 'm4a'} # 許可拡張子
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024             # 最大ファイルサイズ（16MB）
+SECRET_KEY = 'your-secret-key-here'               # Flask秘密キー
+
+# DynamoDB 接続設定
+endpoint_url = "http://localhost:8000"            # DynamoDB Local URL
+region_name = "ap-northeast-1"                    # AWS リージョン
 ```
 
-### config/database.py
+### DB/docker-compose.yml
 
-DynamoDB ローカル接続設定
+DynamoDB Local 環境設定
+
+```yaml
+version: "3.8"
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodb"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/dynamodb:/home/dynamodb
+```
 
 ## 開発指針
 
-### 1. コード分割原則
+### 1. プロトタイプ開発
 
-- **単一責任原則**: 各クラス・関数は単一の責任を持つ
-- **機能分離**: ルート、サービス、ユーティリティの明確な分離
-- **設定外部化**: 設定値は設定ファイルに集約
+- **単一ファイル構成**: 素早いプロトタイプ開発のため
+- **機能最小化**: 必要最小限の機能に絞り込み
+- **将来の拡張性**: モジュール化への移行可能性を考慮
 
 ### 2. エラーハンドリング
 
-- サービス層でのビジネスロジックエラー処理
-- ルート層での HTTP エラーレスポンス
-- ユーザーフレンドリーなエラーメッセージ
+- Flask の標準エラーハンドリング
+- ユーザーフレンドリーなメッセージ表示
+- ファイルアップロード時の検証
 
 ### 3. セキュリティ
 
 - ファイルアップロード時の拡張子チェック
 - ファイル名のサニタイズ（secure_filename 使用）
-- SQL インジェクション対策（DynamoDB 使用）
+- DynamoDB を使用したインジェクション対策
 
 ## トラブルシューティング
 
@@ -247,22 +259,25 @@ docker-compose restart
 ### 3. インポートエラー
 
 ```bash
-# Pythonパスの確認
-export PYTHONPATH=$PYTHONPATH:/path/to/DynamoDB_test/app
-
-# または仮想環境の再作成
+# 仮想環境の再作成
 deactivate
 rm -rf venv
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+
+# プロジェクトディレクトリで実行
+cd /Users/nishioshin/Documents/0_batonext/0_task/202504_警報音検知/DynamoDB_test
+python app.py
 ```
 
 ## 今後の改善点
 
-1. **認証・認可**: ユーザー管理機能の追加
-2. **ログ機能**: 操作ログの記録
-3. **バリデーション強化**: より詳細な入力検証
-4. **テスト**: 単体テスト・結合テストの追加
-5. **API 文書化**: OpenAPI/Swagger 対応
-6. **デプロイ**: Docker 化・本番環境対応
+1. **アーキテクチャ改善**: モジュール化・レイヤード アーキテクチャへの移行
+2. **認証・認可**: ユーザー管理機能の追加
+3. **ログ機能**: 操作ログの記録
+4. **バリデーション強化**: より詳細な入力検証
+5. **テスト**: 単体テスト・結合テストの追加
+6. **API 文書化**: OpenAPI/Swagger 対応
+7. **デプロイ**: Docker 化・本番環境対応
+8. **環境設定**: .env ファイルの活用とセキュリティ強化
